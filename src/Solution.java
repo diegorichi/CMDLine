@@ -142,7 +142,7 @@ class Command {
 		this.node = node;
 	}
 
-	public String lsThis() {
+	private String lsThis() {
 		StringBuilder result = new StringBuilder();
 		node.getChilds().values().forEach((Node item) -> {
 			result.append(item);
@@ -151,6 +151,13 @@ class Command {
 		return result.toString();
 	}
 
+	
+	/**
+	 * List all directories and files in a node.
+	 * do it recursive if recursive is true
+	 * @param recursive
+	 * @return
+	 */
 	public String ls(boolean recursive) {
 		StringBuilder result = new StringBuilder();
 		result.append(lsThis());
@@ -185,6 +192,14 @@ class Command {
 		return "";
 	}
 
+	
+	/**
+	 * Get the name of the directory and return it.
+	 * Even with a full path like /root/abc/cde.
+	 * We not handle ".." for the moment. 
+	 * @param param
+	 * @return
+	 */
 	public Optional<Node> changeDirectory(String param) {
 		// remove initial / to avoid empty entrys
 		String[] splited = null;
@@ -201,6 +216,12 @@ class Command {
 
 	}
 
+	/** 
+	 * Maybe we can manage this with stack or extending a collection and redefining 
+	 * the {@code toString} method
+	 * @param parent
+	 * @return
+	 */
 	public String pwd(Node parent) {
 		if (parent.getParent() == null) {
 			return parent.getData();
@@ -210,6 +231,13 @@ class Command {
 	}
 }
 
+/**
+ * Handle and dispatch a command.
+ * All available commands are in a map to access by name.
+ * With this approach you can avoid the if or switch statement.
+ * @author Diego Richi
+ *
+ */
 class HandleAndDispatchCMD {
 
 	Map<String, Runnable> commandMap = new HashMap<>();
@@ -221,6 +249,10 @@ class HandleAndDispatchCMD {
 	
 	static HandleAndDispatchCMD instance = null;
 
+	/**
+	 * We manage this as a Singleton.
+	 * @return
+	 */
 	static HandleAndDispatchCMD getInstance() {
 		if (instance == null) {
 			instance = new HandleAndDispatchCMD();
@@ -228,12 +260,20 @@ class HandleAndDispatchCMD {
 		return instance;
 	}
 
+	/**
+	 * We use {@code System.out} as standard ouput
+	 */
 	public HandleAndDispatchCMD() {
 		super();
 		currentNode = new Node("root", true, null);
 		out = System.out;
 	}
 
+	
+	/** Creates and prepare a command, and run if it exist
+	 * 
+	 * @param cmdAndParams
+	 */
 	public void handleCmd(String[] cmdAndParams) {
 
 		prepareCommand(cmdAndParams);
@@ -277,6 +317,14 @@ class HandleAndDispatchCMD {
 	}
 }
 
+
+/**
+ * This class implements a {@code Thread} to handle 
+ * a command line entry with {@code Scanner} class
+ * 
+ * @author Diego Richi
+ *
+ */
 class MainProgram implements Runnable {
 
 	HandleAndDispatchCMD dispatcher = null;
@@ -301,6 +349,12 @@ class MainProgram implements Runnable {
 
 }
 
+
+/**
+ * Main class
+ * @author Diego Richi
+ *
+ */
 public class Solution {
 
 	public static void main(String args[]) throws Exception {
