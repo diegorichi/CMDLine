@@ -218,6 +218,7 @@ class HandleAndDispatchCMD {
 
 	PrintStream out;
 
+	
 	static HandleAndDispatchCMD instance = null;
 
 	static HandleAndDispatchCMD getInstance() {
@@ -235,9 +236,19 @@ class HandleAndDispatchCMD {
 
 	public void handleCmd(String[] cmdAndParams) {
 
+		prepareCommand(cmdAndParams);
+
+		String cmd = cmdAndParams[0];
+		if (commandMap.containsKey(cmd)) {
+			commandMap.get(cmd).run();
+		}else {
+			 out.println("Invalid command");
+		}
+	}
+
+	private void prepareCommand(String[] cmdAndParams) {
 		Command command = new Command(currentNode);
 
-		Map<String, Runnable> commandMap = new HashMap<>();
 		Function<Node, String> pwd = command::pwd;
 		Function<Boolean, String> ls = command::ls;
 		UnaryOperator<String> mkdir = command::mkdir;
@@ -263,11 +274,6 @@ class HandleAndDispatchCMD {
 			if (optional.isEmpty())
 				out.println("Invalid path");
 		});
-
-		String cmd = cmdAndParams[0];
-		if (commandMap.containsKey(cmd)) {
-			commandMap.get(cmd).run();
-		}
 	}
 }
 
