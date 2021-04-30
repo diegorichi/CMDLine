@@ -1,265 +1,305 @@
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Scanner;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
-public class Solution {
+class Node {
+	private String data;
 
-	static Solution.Node currentNode;
-	static Map<String, Solution.Node> allDirectorys = new HashMap<>();
+	private boolean directory;
 
-	static class Node {
-		// Variables
-		private String data;
+	// only if it is directory
+	private Map<String, Node> childs;
 
-		private boolean directory;
+	private Node parent;
 
-		// only if it is directory
-		private List<Node> childs;
+	public Node getParent() {
+		return parent;
+	}
 
-		private Node parent;
-
-		public Node getParent() {
-			return parent;
+	public Node(String data, boolean directory, Node parent) {
+		super();
+		if (directory) {
+			data = "/" + data;
 		}
-
-		public void setParent(Node parent) {
-			this.parent = parent;
-		}
-
-		public Node(String data, boolean directory, Node parent) {
-			super();
-			if (directory) {
-				data = "/" + data;
-				allDirectorys.put(data, this);
-			}
-			this.data = data;
-			this.directory = directory;
-			childs = new ArrayList<>();
-			this.parent = parent;
-
-		}
-
-		@Override
-		public String toString() {
-			return data;
-		}
-
-		public String getData() {
-			return data;
-		}
-
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + ((data == null) ? 0 : data.hashCode());
-			result = prime * result + (directory ? 1231 : 1237);
-			result = prime * result + ((parent == null) ? 0 : parent.hashCode());
-			return result;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			Node other = (Node) obj;
-			if (data == null) {
-				if (other.data != null)
-					return false;
-			} else if (!data.equals(other.data))
-				return false;
-			if (directory != other.directory)
-				return false;
-			if (parent == null) {
-				if (other.parent != null)
-					return false;
-			} else if (!parent.equals(other.parent))
-				return false;
-			return true;
-		}
-
-		public void setData(String data) {
-			this.data = data;
-		}
-
-		public List<Node> getChilds() {
-			return childs;
-		}
-
-		public void setChilds(List<Node> childs) {
-			this.childs = childs;
-		}
-
-		public void ls(PrintStream out, boolean recursive) {
-			if (recursive) {
-				this.getChilds().stream().forEach((Node node) -> {
-					out.println(node);
-					node.ls(out, recursive);
-				});
-			} else {
-				out.print(this.toString());
-			}
-
-		}
-
-		public void ls2(PrintStream out, boolean recursive, String param) {
-			if (recursive) {
-				this.getChilds().stream().forEach((Node node) -> {
-					out.print(node);
-					node.ls(out, recursive);
-				});
-			} else {
-				if (param.lastIndexOf("/") > -1) {
-					String lastDir = param.substring(param.lastIndexOf("/"));
-					Solution.Node lastNodeDir = allDirectorys.get("/" + lastDir);
-					if (lastNodeDir == null) {
-						out.println("Invalid path");
-						return;
-					}
-					lastNodeDir.getChilds().stream().forEach(out::println);
-				} else {
-					this.getChilds().stream().forEach(out::println);
-				}
-			}
-
-		}
-
-		public void makeEntry(PrintStream out, String param, boolean b) {
-			if (this.getChilds().stream().noneMatch((Node node) -> node.data.equals("/" + param))) {
-				this.getChilds().add(new Node(param, b, this));
-			} else {
-				if (b)
-					out.println("Directory already exists");
-			}
-
-		}
-
-		public void changeDirectory(String param) {
-
-			currentNode = allDirectorys.containsKey("/" + param) ? allDirectorys.get("/" + param) : currentNode;
-
-		}
-
-		public void changeDirectory2(PrintStream out, String param) {
-
-			String[] splited = param.split("/");
-
-			if (splited.length > 1) {
-				//search on entire tree 
-				List<String> asList = Arrays.asList(splited);
-
-				if (asList.stream().allMatch((String nodeName) -> allDirectorys.containsKey("/" + nodeName) || "".equals(nodeName) )) {
-					if (param.lastIndexOf("/") > -1) {
-						String lastDir = param.substring(param.lastIndexOf("/"));
-						Solution.Node lastNodeDir = allDirectorys.get(lastDir);
-						currentNode = allDirectorys.get(lastNodeDir.data);
-					}
-				} else {
-					out.println("Invalid path");
-				}
-			} else {
-				//only can be childs 
-				if (childs.stream().anyMatch((Node node)->
-					node.data.equals("/" + param)
-						)) {
-					currentNode = allDirectorys.containsKey("/" + param) ? allDirectorys.get("/" + param) : currentNode;
-				}
-			}
-
-		}
-
-		public String pwd(Node parent) {
-			if (parent.getParent() == null) {
-				return parent.data;
-			} else {
-				return pwd(parent.parent) + parent.data;
-			}
-		}
+		this.data = data;
+		this.directory = directory;
+		childs = new HashMap<>();
+		this.parent = parent;
 
 	}
 
-	public static void main(String args[]) throws Exception {
+	@Override
+	public String toString() {
+		return data;
+	}
 
+	public String getData() {
+		return data;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((data == null) ? 0 : data.hashCode());
+		result = prime * result + (directory ? 1231 : 1237);
+		result = prime * result + ((parent == null) ? 0 : parent.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Node other = (Node) obj;
+		if (data == null) {
+			if (other.data != null)
+				return false;
+		} else if (!data.equals(other.data))
+			return false;
+		if (directory != other.directory)
+			return false;
+		if (parent == null) {
+			if (other.parent != null)
+				return false;
+		} else if (!parent.equals(other.parent))
+			return false;
+		return true;
+	}
+
+	public void setData(String data) {
+		this.data = data;
+	}
+
+	public Map<String, Node> addChild(Node child) {
+		childs.put(child.data, child);
+		return childs;
+	}
+
+	public Map<String, Node> getChilds() {
+		return childs;
+	}
+
+	public Node getRoot() {
+		if (parent == null) {
+			return this;
+		}
+		return parent.getRoot();
+	}
+
+	/**
+	 * Find directory matching all path in param
+	 * 
+	 * @param param
+	 * @param root
+	 * @return
+	 */
+	public Optional<Node> findDirectory(Node root, String[] param) {
+		if (root.data.equals("/" + param[0])) {
+			if (param.length > 1) {
+				Optional<Node> findedDirectory = root.findDirectory(param[0]);
+				if (findedDirectory.isPresent()) {
+					String[] temp = new String[param.length - 1];
+					System.arraycopy(param, 1, temp, 0, param.length - 1);
+					Node item = findedDirectory.get();
+					return item.findDirectory(item, temp);
+				} else {
+					return Optional.empty();
+				}
+			} else {
+				return Optional.of(root);
+			}
+		}
+		return Optional.empty();
+	}
+
+	/**
+	 * Find directory and return it if present
+	 * 
+	 * @param param
+	 * @return
+	 */
+	public Optional<Node> findDirectory(String param) {
+
+		return childs.containsKey("/" + param) ? Optional.of(childs.get("/" + param)) : Optional.empty();
+
+	}
+
+}
+
+class Command {
+	private Node node;
+
+	Command(Node node) {
+		this.node = node;
+	}
+
+	public String lsThis() {
+		StringBuilder result = new StringBuilder();
+		node.getChilds().values().forEach((Node item) -> {
+			result.append(item);
+			result.append("\n");
+		});
+		return result.toString();
+	}
+
+	public String ls(boolean recursive) {
+		StringBuilder result = new StringBuilder();
+		result.append(lsThis());
+		if (recursive) {
+			for (Node item : node.getChilds().values()) {
+				result.append(new Command(item).ls(recursive));
+			}
+		}
+		return result.toString();
+	}
+
+	public String mkdir(String param) {
+		return createNode(param, true);
+	}
+
+	public String touch(String param) {
+		return createNode(param, false);
+	}
+
+	private String createNode(String param, boolean directory) {
+
+		if (param.length() > 100) {
+			return "Invalid File or Folder Name";
+		}
+
+		if (!node.getChilds().containsKey(directory ? "/" + param : param)) {
+			node.addChild(new Node(param, directory, node));
+		} else {
+			if (directory)
+				return "Directory already exists";
+		}
+		return "";
+	}
+
+	public Optional<Node> changeDirectory(String param) {
+		// remove initial / to avoid empty entrys
+		String[] splited = null;
+		if (param.indexOf("/") == 0) {
+			param = param.substring(1, param.length());
+			splited = param.split("/");
+			// find all directory in tree
+			Node root = node.getRoot();
+			return root.findDirectory(root, splited);
+		}
+
+		// only from childs
+		return node.findDirectory(param);
+
+	}
+
+	public String pwd(Node parent) {
+		if (parent.getParent() == null) {
+			return parent.getData();
+		} else {
+			return pwd(parent.getParent()) + parent.getData();
+		}
+	}
+}
+
+class HandleAndDispatchCMD {
+
+	Map<String, Runnable> commandMap = new HashMap<>();
+
+	Node currentNode;
+
+	PrintStream out;
+
+	static HandleAndDispatchCMD instance = null;
+
+	static HandleAndDispatchCMD getInstance() {
+		if (instance == null) {
+			instance = new HandleAndDispatchCMD();
+		}
+		return instance;
+	}
+
+	public HandleAndDispatchCMD() {
+		super();
 		currentNode = new Node("root", true, null);
+		out = System.out;
+	}
+
+	public void handleCmd(String[] cmdAndParams) {
+
+		Command command = new Command(currentNode);
+
+		Map<String, Runnable> commandMap = new HashMap<>();
+		Function<Node, String> pwd = command::pwd;
+		Function<Boolean, String> ls = command::ls;
+		UnaryOperator<String> mkdir = command::mkdir;
+		UnaryOperator<String> touch = command::touch;
+		Function<String, Optional<Node>> cd = command::changeDirectory;
+
+		commandMap.put("pwd", () -> out.println(pwd.apply(currentNode)));
+		commandMap.put("ls", () -> {
+			String dir = "";
+			if (cmdAndParams.length == 2) {
+				out.println(currentNode);
+				dir = ls.apply("-r".equalsIgnoreCase(cmdAndParams[1]));
+			} else {
+				dir = ls.apply(false);
+			}
+			out.println(dir);
+		});
+		commandMap.put("mkdir", () -> out.println(mkdir.apply(cmdAndParams[1])));
+		commandMap.put("touch", () -> out.println(touch.apply(cmdAndParams[1])));
+		commandMap.put("cd", () -> {
+			Optional<Node> optional = cd.apply(cmdAndParams[1]);
+			currentNode = optional.orElse(currentNode);
+			if (optional.isEmpty())
+				out.println("Invalid path");
+		});
+
+		String cmd = cmdAndParams[0];
+		if (commandMap.containsKey(cmd)) {
+			commandMap.get(cmd).run();
+		}
+	}
+}
+
+class MainProgram implements Runnable {
+
+	HandleAndDispatchCMD dispatcher = null;
+
+	@Override
+	public void run() {
+
+		dispatcher = HandleAndDispatchCMD.getInstance();
 
 		try (Scanner scanner = new Scanner(System.in)) {
-			// prompt for the user's name
 
 			while (scanner.hasNext()) {
 				String cmd = scanner.nextLine();
 				if (cmd.equals("quit"))
 					break;
 
-				String[] cmdAndParams = cmd.split(" ");
-
-				handleCmd(cmdAndParams, System.out);
+				dispatcher.handleCmd(cmd.split(" "));
 
 			}
 		}
-		/* Enter your code here. Read input from STDIN. Print output to STDOUT */
 	}
 
-	private static void handleCmd(String[] cmdAndParams, PrintStream out) {
-		String param = "";
+}
 
-		switch (cmdAndParams[0]) {
-		case "pwd":
-			String myPwd = currentNode.pwd(currentNode);
-			out.println(myPwd);
-			break;
-		case "ls":
-			String dir = "";
-			if (cmdAndParams.length == 2) {
-				if ("-r".equalsIgnoreCase(cmdAndParams[1])) {
-					param = cmdAndParams[1];
-				} else {
-					dir = cmdAndParams[1];					
-				}
-			}
-			if (cmdAndParams.length == 3) {
-				dir = cmdAndParams[2];
-			}
-			// print current dir
-			out.println(currentNode);
-			currentNode.ls2(out, param.equalsIgnoreCase("-r"), dir);
-			break;
-		case "mkdir":
-		case "touch":
-			if (cmdAndParams.length > 1) {
-				if (cmdAndParams[1].length() > 100) {
-					out.println("Invalid File or Folder Name");
-				} else {
-					param = cmdAndParams[1];
-				}
-				currentNode.makeEntry(out, param, "mkdir".equals(cmdAndParams[0]));
-			} else {
-				out.println("Invalid File or Folder Name");
-			}
-			break;
-		case "cd":
-			if (cmdAndParams.length > 1) {
-				if (cmdAndParams[1].length() > 100) {
-					return;
-				} else {
-					param = cmdAndParams[1];
-				}
+public class Solution {
 
-				currentNode.changeDirectory2(out, param);
-			} else {
-				// invalid directory
-			}
-			break;
-			default: break;
-		}
+	public static void main(String args[]) throws Exception {
+
+		new Thread(new MainProgram()).start();
 
 	}
-
 }
